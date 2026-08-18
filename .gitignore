@@ -1,3 +1,11 @@
 .weft/
 nodes/base_catalog/
 .DS_Store
+# python package build artifacts
+python/.venv/
+python/dist/
+python/**/__pycache__/
+python/.pytest_cache/
+python/.ruff_cache/
+python/*.egg-info/
+out/

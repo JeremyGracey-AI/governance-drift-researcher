@@ -1,0 +1,13 @@
+agents:
+  - agent_id: finance-copilot
+    owner: fin-eng@example.invalid
+    models:
+      - gpt-4o-2024-08-06
+    connectors:
+      - sharepoint
+  - agent_id: hr-bot
+    owner: people-ops@example.invalid
+    models:
+      - gpt-4o-2024-08-06
+      - gpt-4o-mini-2024-07-18
+    connectors: []

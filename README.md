@@ -27,6 +27,9 @@ detects that drift and reports it under rules that make the report *trustworthy*
 same program as source: [`main.weft`](main.weft) (~20 nodes, Weft mvp dialect;
 [`main.run-variant.weft`](main.run-variant.weft) is the credential-free variant).
 
+**Or run it as a Python CLI** — `pip install governance-drift`, then `govdrift scan` emits
+SARIF straight into GitHub code scanning. See [`python/`](python/).
+
 ## How it works
 
 ```
