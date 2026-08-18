@@ -1,0 +1,71 @@
+diff --git a/catalog/ai/llm/infer/metadata.json b/catalog/ai/llm/infer/metadata.json
+index 3996726..3a1b860 100644
+--- a/catalog/ai/llm/infer/metadata.json
++++ b/catalog/ai/llm/infer/metadata.json
+@@ -59,7 +59,11 @@
+       "exposure": "config",
+       "widget": {
+         "kind": "select",
+-        "options": ["auto", "required", "none"]
++        "options": [
++          "auto",
++          "required",
++          "none"
++        ]
+       },
+       "default": "auto",
+       "label": "Tool choice",
+@@ -97,6 +101,49 @@
+   "requires_infra": false,
+   "features": {
+     "canAddOutputPorts": true,
+-    "oneOfRequired": [["prompt", "history", "media"]]
+-  }
+-}
++    "oneOfRequired": [
++      [
++        "prompt",
++        "history",
++        "media"
++      ]
++    ]
++  },
++  "validate": [
++    {
++      "when": {
++        "kind": "all",
++        "of": [
++          {
++            "kind": "input_wired",
++            "port": "prompt"
++          },
++          {
++            "kind": "not",
++            "of": {
++              "kind": "any",
++              "of": [
++                {
++                  "kind": "input_source_type",
++                  "port": "prompt",
++                  "equals": "Gate"
++                },
++                {
++                  "kind": "input_source_type",
++                  "port": "prompt",
++                  "equals": "Text"
++                }
++              ]
++            }
++          }
++        ]
++      },
++      "then": {
++        "message": "LlmInference '{id}': prompt is wired from unfiltered dynamic content. Route untrusted text through a moderation gate (LlmModerate -> Gate) before it reaches the model, or declare the prompt as a static Text/literal.",
++        "level": "structural",
++        "severity": "error",
++        "port": "prompt"
++      }
++    }
++  ]
++}
+\ No newline at end of file

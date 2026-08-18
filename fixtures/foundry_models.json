@@ -1,0 +1,5 @@
+{"data": [
+  {"id": "gpt-4o", "version": "2024-08-06", "lifecycleStatus": "retiring", "deprecationDate": "2026-11-01", "replacement": "gpt-4o-2024-11-20"},
+  {"id": "gpt-4o-mini", "version": "2024-07-18", "lifecycleStatus": "generallyAvailable", "deprecationDate": null, "replacement": null},
+  {"id": "text-embedding-ada", "version": "002", "lifecycleStatus": "deprecated", "deprecationDate": null, "replacement": "text-embedding-3-small"}
+]}

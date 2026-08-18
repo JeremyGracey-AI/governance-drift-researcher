@@ -1,0 +1,18 @@
+# Reproduction transcripts — declarative unfiltered-prompt rule
+# Weft mvp branch, commit as of 2026-08-18. weft-cli release build.
+
+## 1. Stock catalog: the unfiltered edge compiles silently
+$ weft build            # impact.prompt = impactPrompt.prompt (S2 abstracts -> ExecPython -> LLM)
+worker image dc41a77024ef50df        # no diagnostic of any kind
+
+## 2. Patched catalog (eval/unfiltered-prompt-rule.patch applied to the
+##    project's nodes/base_catalog copy): same edge is refused
+$ weft build
+error: plan build: validation error: 249:0 LlmInference 'impact': prompt is wired
+from unfiltered dynamic content. Route untrusted text through a moderation gate
+(LlmModerate -> Gate) before it reaches the model, or declare the prompt as a
+static Text/literal.
+
+## 3. Compliant graph (corpus -> LlmModerate -> Gate -> prompt): accepted
+$ weft build
+worker image f425e13102119227

@@ -1,0 +1,301 @@
+# Governance Drift Researcher — Weft port of agent-lab's drift package.
+# Structure mirrors the Python package: one node per module.
+# Sources -> detectors -> verify -> enrich (Semantic Scholar -> LLM) -> render -> human gate.
+
+# ---- Fixture sources (agent-lab tests/fixtures; inventory converted YAML->JSON:
+# ---- ExecPython is stdlib-only, no yaml module) ----
+foundryRaw = Text { value: @file("fixtures/foundry_models.json") }
+inventoryRaw = Text { value: @file("fixtures/inventory_approved.json") }
+tenantRaw = Text { value: @file("fixtures/tenant_observed.json") }
+runDate = Text { value: "2026-08-16" }
+
+# ---- sources/foundry.py: lifecycle changes from the Foundry models payload ----
+parseFoundry = ExecPython(raw: String) -> (changes: List[JsonDict]) {
+  code: ```
+    import json, hashlib
+    AFFECTED = {"retiring", "deprecated", "retired"}
+    payload = json.loads(raw)
+    sha = hashlib.sha256(raw.encode()).hexdigest()
+    changes = []
+    for i, obj in enumerate(payload["data"]):
+        status = str(obj.get("lifecycleStatus", ""))
+        if status not in AFFECTED:
+            continue
+        detail = f"lifecycleStatus={status}"
+        if obj.get("replacement") is not None:
+            detail += f"; replacement={obj['replacement']}"
+        changes.append({
+            "kind": "model-retirement",
+            "subject": f"{obj.get('id','')}-{obj.get('version','')}",
+            "effective": obj.get("deprecationDate"),
+            "detail": detail,
+            "evidence": {"source_uri": "weft://fixtures/foundry_models.json",
+                          "content_sha256": sha,
+                          "field_path": f"$.data[{i}]",
+                          "extraction": "structured"},
+        })
+    return {"changes": changes}
+  ```
+}
+parseFoundry.raw = foundryRaw.value
+
+# ---- sources/inventory.py: the approved baseline (read-only by design) ----
+parseInventory = ExecPython(raw: String) -> (entries: List[JsonDict]) {
+  code: ```
+    import json, hashlib
+    payload = json.loads(raw)
+    sha = hashlib.sha256(raw.encode()).hexdigest()
+    entries = []
+    for i, agent in enumerate(payload["agents"]):
+        entries.append({
+            "agent_id": agent["agent_id"],
+            "owner": agent["owner"],
+            "models": agent.get("models") or [],
+            "connectors": agent.get("connectors") or [],
+            "evidence": {"source_uri": "weft://fixtures/inventory_approved.json",
+                          "content_sha256": sha,
+                          "field_path": f"$.agents[{i}]",
+                          "extraction": "structured"},
+        })
+    return {"entries": entries}
+  ```
+}
+parseInventory.raw = inventoryRaw.value
+
+# ---- sources/tenant.py: observed tenant agents (optional adapter) ----
+parseTenant = ExecPython(raw: String) -> (entries: List[JsonDict], configured: Boolean) {
+  code: ```
+    import json, hashlib
+    payload = json.loads(raw)
+    sha = hashlib.sha256(raw.encode()).hexdigest()
+    entries = []
+    for i, obj in enumerate(payload["value"]):
+        entries.append({
+            "agent_id": obj["id"],
+            "owner": str(obj.get("owner", "unknown")),
+            "models": obj.get("models") or [],
+            "connectors": obj.get("connectors") or [],
+            "evidence": {"source_uri": "weft://fixtures/tenant_observed.json",
+                          "content_sha256": sha,
+                          "field_path": f"$.value[{i}]",
+                          "extraction": "structured"},
+        })
+    return {"entries": entries, "configured": True}
+  ```
+}
+parseTenant.raw = tenantRaw.value
+
+# ---- detectors/model_retirement.py: correlate + severity thresholds ----
+detectRetirement = ExecPython(changes: List[JsonDict], approved: List[JsonDict], today: String) -> (findings: List[JsonDict]) {
+  code: ```
+    from datetime import date
+    t = date.fromisoformat(today)
+    findings = []
+    for change in changes:
+        affected = [e for e in approved if change["subject"] in e["models"]]
+        if not affected:
+            continue
+        eff = change["effective"]
+        if eff is None:
+            sev = "low"
+            summary = f"{change['subject']} is deprecated with no retirement date; {len(affected)} agent(s) pin it"
+        else:
+            days = (date.fromisoformat(eff) - t).days
+            sev = "critical" if days <= 30 else "high" if days <= 90 else "medium" if days <= 180 else "info"
+            when = f"in {days} days" if days >= 0 else f"{abs(days)} days ago"
+            summary = f"{change['subject']} retires {when} ({eff}); {len(affected)} agent(s) pin it"
+        findings.append({
+            "rule_id": "drift/model-retirement",
+            "severity": sev,
+            "summary": summary,
+            "subject": change["subject"],
+            "affected": affected,
+            "evidence": [change["evidence"]] + [e["evidence"] for e in affected],
+            "next_action": "Plan migration for every pinned agent before the retirement date; propose the model bump as a reviewed pull request",
+        })
+    return {"findings": findings}
+  ```
+}
+detectRetirement.changes = parseFoundry.changes
+detectRetirement.approved = parseInventory.entries
+detectRetirement.today = runDate.value
+
+# ---- detectors/unapproved_agent.py: observed-but-not-approved ----
+detectUnapproved = ExecPython(approved: List[JsonDict], observed: List[JsonDict]) -> (findings: List[JsonDict]) {
+  code: ```
+    known = {e["agent_id"] for e in approved}
+    rogue = [e for e in observed if e["agent_id"] not in known]
+    if not rogue:
+        return {"findings": []}
+    names = ", ".join(e["agent_id"] for e in rogue)
+    return {"findings": [{
+        "rule_id": "drift/unapproved-agent",
+        "severity": "high",
+        "summary": f"{len(rogue)} agent(s) running outside the approved baseline: {names}",
+        "subject": rogue[0]["agent_id"],
+        "affected": rogue,
+        "evidence": [e["evidence"] for e in rogue],
+        "next_action": "Review each agent, then either add it to the inventory in a reviewed pull request or decommission it",
+    }]}
+  ```
+}
+detectUnapproved.approved = parseInventory.entries
+detectUnapproved.observed = parseTenant.entries
+
+# ---- verify.py: evidence check — a finding citing an unresolvable path is dropped ----
+verify = ExecPython(a: List[JsonDict], b: List[JsonDict], foundry: String, inventory: String, tenant: String) -> (kept: List[JsonDict], dropped: Number) {
+  code: ```
+    import json, re
+    payloads = {
+        "weft://fixtures/foundry_models.json": json.loads(foundry),
+        "weft://fixtures/inventory_approved.json": json.loads(inventory),
+        "weft://fixtures/tenant_observed.json": json.loads(tenant),
+    }
+    def resolve(payload, path):
+        if not path.startswith("$"):
+            raise ValueError(path)
+        node = payload
+        for key, idx in re.findall(r"([^.\[\]]+)|\[(\d+)\]", path[1:]):
+            if idx:
+                if not isinstance(node, list) or int(idx) >= len(node):
+                    raise ValueError(path)
+                node = node[int(idx)]
+            else:
+                if not isinstance(node, dict) or key not in node:
+                    raise ValueError(path)
+                node = node[key]
+        return node
+    kept, dropped = [], 0
+    for f in a + b:
+        try:
+            for ev in f["evidence"]:
+                resolve(payloads[ev["source_uri"]], ev["field_path"])
+            kept.append(f)
+        except (ValueError, KeyError):
+            dropped += 1
+    order = {"critical": 0, "high": 1, "medium": 2, "low": 3, "info": 4}
+    kept.sort(key=lambda f: order[f["severity"]])
+    return {"kept": kept, "dropped": dropped}
+  ```
+}
+verify.a = detectRetirement.findings
+verify.b = detectUnapproved.findings
+verify.foundry = foundryRaw.value
+verify.inventory = inventoryRaw.value
+verify.tenant = tenantRaw.value
+
+# ---- Enrichment: literature context for the first retirement finding ----
+# Emits nothing (port closes, whole branch skips) when there is no retirement
+# finding — Weft's null-propagation as the "no drift, no enrichment" branch.
+s2Query = ExecPython(findings: List[JsonDict]) -> (url: String, subject: String) {
+  code: ```
+    from urllib.parse import urlencode
+    retire = [f for f in findings if f["rule_id"] == "drift/model-retirement"]
+    if not retire:
+        return {"url": None, "subject": None}
+    subject = retire[0]["subject"]
+    family = subject.rsplit("-", 3)[0] if subject.count("-") >= 3 else subject
+    q = urlencode({
+        "query": f"{family} large language model deprecation migration",
+        "fields": "title,abstract,year,citationCount",
+        "limit": "5",
+    })
+    return {"url": f"https://api.semanticscholar.org/graph/v1/paper/search?{q}", "subject": subject}
+  ```
+}
+s2Query.findings = verify.kept
+
+s2 = HttpRequest { method: "GET" }
+s2.url = s2Query.url
+
+# Deliberate first pass: S2 abstracts (untrusted web text) flow into the LLM
+# prompt with no LlmModerate/filter in between. This edge is the probe for the
+# launch-blog claim that the compiler flags unfiltered input into a model.
+s2Corpus = ExecPython(body: JsonDict | String) -> (corpus: String) {
+  code: ```
+    # The compiler forced this union: HttpRequest.body is JsonDict | String,
+    # because an API can answer with a non-JSON error page. It was right.
+    if isinstance(body, str):
+        return {"corpus": "No papers found (non-JSON response)."}
+    papers = (body or {}).get("data") or []
+    blocks = []
+    for p in papers:
+        title = p.get("title") or "untitled"
+        year = p.get("year") or "?"
+        cites = p.get("citationCount") or 0
+        abstract = (p.get("abstract") or "").strip()
+        blocks.append(f"## {title} ({year}, {cites} citations)\n{abstract}")
+    return {"corpus": "\n\n".join(blocks) if blocks else "No papers found."}
+  ```
+}
+s2Corpus.body = s2.body
+
+impactPrompt = ExecPython(corpus: String, subject: String) -> (prompt: String) {
+  code: ```
+    return {"prompt": (
+        f"A governance scan found that model '{subject}' is being retired and "
+        f"production agents still pin it. Using ONLY the literature excerpts "
+        f"below, write a 5-sentence migration-impact note for the platform "
+        f"team. Cite paper titles inline.\n\n--- LITERATURE ---\n{corpus}"
+    )}
+  ```
+}
+impactPrompt.corpus = s2Corpus.corpus
+impactPrompt.subject = s2Query.subject
+
+# ---- render/markdown.py: the report, coverage-gap statement included ----
+render = ExecPython(kept: List[JsonDict], dropped: Number, tenantConfigured: Boolean, today: String, impact: String?) -> (report: String) {
+  code: ```
+    lines = [f"# Governance drift — {today}", ""]
+    lines.append("## Run context")
+    if tenantConfigured:
+        lines.append("- Tenant adapter configured; both sides scanned.")
+    else:
+        lines.append("- **Coverage gap:** tenant adapter not configured — vendor-side findings only. Absence of tenant findings does not mean the tenant is clean.")
+    lines.append(f"- Findings dropped by evidence check: {int(dropped)}")
+    lines.append("")
+    lines.append("## Findings")
+    if not kept:
+        lines.append("No drift detected.")
+    for f in kept:
+        lines += ["", f"### {f['severity'].upper()} · {f['rule_id']}", "", f["summary"], ""]
+        lines.append(f"**Affected ({len(f['affected'])}):**")
+        for e in f["affected"]:
+            ev = e["evidence"]
+            lines.append(f"- `{e['agent_id']}` — owner {e['owner']} (`{ev['source_uri']}` at `{ev['field_path']}`)")
+        lines.append("**Evidence:**")
+        for ev in f["evidence"]:
+            lines.append(f"- `{ev['source_uri']}` at `{ev['field_path']}` — sha256 `{ev['content_sha256'][:12]}…`, extraction `{ev['extraction']}`")
+        lines.append(f"**Safest next action — PROPOSED, not applied:** {f['next_action']}")
+    if impact:
+        lines += ["", "## Literature context (Semantic Scholar, top matches)", "", impact]
+    return {"report": "\n".join(lines)}
+  ```
+}
+render.kept = verify.kept
+render.dropped = verify.dropped
+render.tenantConfigured = parseTenant.configured
+render.today = runDate.value
+render.impact = s2Corpus.corpus
+
+# ---- Governance gate: agents propose, humans promote ----
+review = HumanQuery {
+  title: "Publish drift report?",
+  fields: [
+    { "fieldType": "display", "key": "draft", "label": "Draft report" },
+    { "fieldType": "approve_reject", "key": "publish" },
+    { "fieldType": "textarea", "key": "notes", "label": "Reviewer notes" }
+  ]
+}
+review.draft = render.report
+
+publishGate = Gate
+publishGate.pass = review.publish_approved
+publishGate.value = render.report
+
+published = Debug
+published.data = publishGate.value
+
+
+draftPreview = Debug
+draftPreview.data = render.report

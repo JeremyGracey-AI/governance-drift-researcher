@@ -1,0 +1,8 @@
+[package]
+name = "drift-researcher-weft"
+id = "0ee6ba16-bd57-4f3c-81f0-e42eaf0bb1bc"
+version = "0.1.0"
+
+[dispatcher]
+
+[build.worker]
