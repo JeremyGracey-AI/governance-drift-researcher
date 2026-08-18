@@ -1,62 +1,80 @@
-# Weft, field-tested: the first external port of a governed pipeline
+# Governance Drift Researcher
 
-**[Weft](https://github.com/WeaveMindAI/weft)** is a new open-source coordination language
-for AI systems — LLMs, humans, APIs, and infrastructure as typed nodes in a
-compiler-verified graph, pre-release as of this writing. In one overnight session
-(2026-08-18) I ported a real governance pipeline to it, compiled it on the `mvp` branch,
-fought a local Kubernetes runtime, ran it **end to end on WeaveMind Cloud**, and evaluated
-the language against its own published claims — including shipping a working patch for its
-biggest unshipped one.
+**A deterministic drift researcher that answers: what changed in the approved AI-agent
+landscape, what is affected, what evidence supports it, and what is the safest next
+action — and publishes nothing until a human approves.**
 
-The port: a **governance drift researcher** — scans vendor model-lifecycle data and an
-observed agent tenant against an approved baseline, attaches verifiable evidence (source,
-field path, content hash) to every finding, drops anything it can't re-verify, enriches
-with literature via Semantic Scholar, drafts a report with an LLM, and **publishes nothing
-until a human approves**. ~20 nodes. It ran; a human (me, at 3 AM) clicked approve; the
-gate passed.
+Every organization running AI agents has an approved baseline (which agents, which
+models, which connectors) and a reality that drifts away from it: vendors retire models
+that production agents still pin; agents appear that nobody approved. This pipeline
+detects that drift and reports it under rules that make the report *trustworthy*:
+
+- **Every finding carries verifiable evidence** — source URI, JSON field path, and the
+  content hash of the exact bytes it was derived from.
+- **Findings that can't be re-verified are dropped**, and the report says how many.
+- **Coverage gaps are stated, not hidden** — "absence of tenant findings does not mean
+  the tenant is clean."
+- **Nothing publishes without human sign-off.** The pipeline suspends at an approval
+  gate; a human reads the draft, approves or rejects, and the decision (with notes) is
+  in the audit trail. *Agents propose, humans promote.*
 
 ![The pipeline as a live graph](images/1-builder-graph-run-live.jpg)
 
-## The five-minute version
+## Try it
 
-| Claim | Verdict |
-|---|---|
-| "The compiler catches wrong types, missing connections, broken logic" | **True, and better than PoC-grade.** 13 validation passes; caught a real union-type bug in this port on first compile that the original Python would have hit at runtime. |
-| "The compiler won't let the AI send unfiltered user input straight into a model" | **Not implemented** — no taint machinery exists in any branch. But the shipped declarative rule grammar can express a first version: [this ~30-line metadata patch](eval/unfiltered-prompt-rule.patch) makes the compiler refuse my unfiltered web-text → LLM edge and admit the moderated one. [Transcripts](eval/transcript-rule-firing.txt). |
-| "Edit either view, the other updates" | True in the editor — but the Cloud *compiler* rejects syntax the editor parser accepts, discovered at run start. Three dialects currently coexist (main, mvp, Cloud). |
-| "Your program is a native binary, not a graph being interpreted" | Half-true: node implementations are natively compiled; the topology is JSON, fetched per execution and walked by an engine inside that binary. |
-| Durable execution / human-in-the-loop | The suspension survived everything we threw at it, and on Cloud the approval is **structurally human** — no API in the product surface lets the agent that built the project approve its own report. That's "agents propose, humans promote" enforced by the runtime. |
+The pipeline is published on **WeaveMind Cloud's community gallery** — search
+**"Governance Drift Researcher"** (by `gracey_dev`) at [app.weavemind.ai](https://app.weavemind.ai)
+and clone it into your projects. A full run costs about **$0.03**. This repo carries the
+same program as source: [`main.weft`](main.weft) (~20 nodes, Weft mvp dialect;
+[`main.run-variant.weft`](main.run-variant.weft) is the credential-free variant).
 
-Also in here: a poisoned terminate-sweep that survives dispatcher restarts (durable state
-cutting both ways), why the platform doesn't fit Docker Desktop's default VM, and the
-undocumented enterprise story hiding in `weft new`'s per-project catalog vendoring —
-governance policy distributed with the vocabulary.
+## How it works
+
+```
+foundry feed ─┐
+inventory ────┼→ parsers → detectors ──→ evidence check ──→ report renderer ─→ HUMAN ─→ gate ─→ publish
+tenant feed ──┘   (model retirement,      (re-resolve every    (coverage gaps,   approval
+                   unapproved agents)      cited field path;     severity-ranked
+                                           drop what fails)      findings)
+                        Semantic Scholar ─→ LLM migration note ──↗
+```
+
+- **Detectors**: model-retirement (severity from days-to-retirement: ≤30 critical,
+  ≤90 high, ≤180 medium) and unapproved-agent (anything observed outside the baseline
+  is HIGH by definition).
+- **Enrichment**: literature context from the Semantic Scholar API feeds an LLM that
+  drafts a migration-impact note — instructed to treat retrieved text as data, never
+  instructions, and observed (in the live run) refusing to fabricate when the literature
+  fetch failed.
+- **The human gate is structural.** On WeaveMind Cloud there is no API by which the agent
+  that built the pipeline can approve its own report — submission requires a
+  human-held surface. Governance enforced by architecture, not by prompt.
 
 ![All nodes green, suspended at the human gate](images/2-execution-all-nodes-human-gate.jpg)
 ![The approval form holding the drafted report](images/3-approval-form-with-report.jpg)
-![Gate passed](images/4-submitted-gate-passed.jpg)
 
-## Read the full thing
+The reference implementation (pure Python, same detectors and evidence rules, marimo
+notebook + test suite) lives in the author's agent-lab; this is its first port to a
+coordination language.
 
-- **[WHAT-IS-WEFT.md](WHAT-IS-WEFT.md)** — new to Weft? A two-minute primer on the
-  language and the concepts this report leans on.
-- **[EVALUATION.md](EVALUATION.md)** — the complete evaluation: compile layer, local
-  runtime attempt (four findings), and the Cloud run (four more).
-- **[UPSTREAM-REPORT.md](UPSTREAM-REPORT.md)** — the field report prepared for the
-  WeaveMind team, ordered strengths-first.
-- **[main.weft](main.weft)** — the moderated pipeline (mvp dialect);
-  [main.run-variant.weft](main.run-variant.weft) is the local-run variant.
-- **[eval/](eval/)** — the rule patch and reproduction transcripts.
+## Field report: what we learned porting this to Weft
 
-## Method, stated
+This pipeline is also the vehicle for the **first external evaluation of
+[Weft](https://github.com/WeaveMindAI/weft)** (pre-release), written the same way the
+pipeline writes its reports — claims with evidence, failures with root causes:
 
-Everything here follows one discipline: claims carry evidence (file:line citations,
-committed transcripts, screenshots of live runs), failures are reported with root causes
-rather than hidden, and the subject is measured against **its own** published claims and
-design principles — including its stated author model, "the author is an AI with a prompt,"
-which is literally how this port was written. The evaluation praises what's real, patches
-what's missing where the machinery allows, and states precisely the distance between the
-demo and the promise.
+- **[WHAT-IS-WEFT.md](WHAT-IS-WEFT.md)** — two-minute primer on the language.
+- **[EVALUATION.md](EVALUATION.md)** — the full evaluation: a compile layer that caught a
+  real bug on first compile; the flagship "unfiltered input → model" claim tested (not
+  implemented — so we implemented it: a [~30-line rule patch](eval/unfiltered-prompt-rule.patch)
+  that refuses the unfiltered edge and admits the moderated one, with
+  [transcripts](eval/transcript-rule-firing.txt)); three coexisting dialects; four
+  runtime findings from a local cluster; and the end-to-end Cloud run behind the
+  screenshots above.
+- **[UPSTREAM-REPORT.md](UPSTREAM-REPORT.md)** — the findings as prepared for the
+  WeaveMind team, strengths first.
 
-*Weft is O'Saasy-licensed; its catalog is deliberately not vendored here — `weft new`
-regenerates it, and the one-file rule change ships as a patch instead.*
+*Method: claims carry evidence (file:line citations, committed transcripts, screenshots
+of live runs); failures are reported with root causes; the subject is measured against
+its own published claims. Weft is O'Saasy-licensed; its catalog is deliberately not
+vendored here — `weft new` regenerates it.*
