@@ -38,6 +38,8 @@ governance policy distributed with the vocabulary.
 
 ## Read the full thing
 
+- **[WHAT-IS-WEFT.md](WHAT-IS-WEFT.md)** — new to Weft? A two-minute primer on the
+  language and the concepts this report leans on.
 - **[EVALUATION.md](EVALUATION.md)** — the complete evaluation: compile layer, local
   runtime attempt (four findings), and the Cloud run (four more).
 - **[UPSTREAM-REPORT.md](UPSTREAM-REPORT.md)** — the field report prepared for the
