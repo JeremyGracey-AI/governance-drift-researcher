@@ -22,8 +22,8 @@ detects that drift and reports it under rules that make the report *trustworthy*
 
 ## Try it
 
-**[Clone it on WeaveMind Cloud →](https://app.weavemind.ai/app#/p/gracey_dev/governance-drift-researcher-v2)**
-(community gallery, by `gracey_dev`) — one click into your own projects. A full run costs about **$0.03**. This repo carries the
+**[Try it live on WeaveMind Cloud →](https://app.weavemind.ai/app#/p/gracey_dev/governance-drift-researcher-v2)**
+— run a scan right in the browser and review the draft report before anything publishes. A full run costs about **$0.03**. This repo carries the
 same program as source: [`main.weft`](main.weft) (~20 nodes, Weft mvp dialect;
 [`main.run-variant.weft`](main.run-variant.weft) is the credential-free variant).
 
