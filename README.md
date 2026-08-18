@@ -22,9 +22,8 @@ detects that drift and reports it under rules that make the report *trustworthy*
 
 ## Try it
 
-The pipeline is published on **WeaveMind Cloud's community gallery** — search
-**"Governance Drift Researcher"** (by `gracey_dev`) at [app.weavemind.ai](https://app.weavemind.ai)
-and clone it into your projects. A full run costs about **$0.03**. This repo carries the
+**[Clone it on WeaveMind Cloud →](https://app.weavemind.ai/community/9be42678-5f9f-42ae-8ca8-0c0b1ee623d3)**
+(community gallery, by `gracey_dev`) — one click into your own projects. A full run costs about **$0.03**. This repo carries the
 same program as source: [`main.weft`](main.weft) (~20 nodes, Weft mvp dialect;
 [`main.run-variant.weft`](main.run-variant.weft) is the credential-free variant).
 
