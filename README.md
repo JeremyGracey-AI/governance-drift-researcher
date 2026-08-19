@@ -22,11 +22,15 @@ detects that drift and reports it under rules that make the report *trustworthy*
 
 ## Try it
 
-**[Clone it on WeaveMind Cloud →](https://app.weavemind.ai/community/9be42678-5f9f-42ae-8ca8-0c0b1ee623d3)**
-— one click into your own projects, then run a scan in the browser and review the draft report
-before anything publishes. (The community-gallery link is the public one; a direct project URL
-requires a WeaveMind login.) A full run costs about **$0.03**. This repo carries the
-same program as source: [`main.weft`](main.weft) (~20 nodes, Weft mvp dialect;
+**[Run it live on WeaveMind Cloud →](https://app.weavemind.ai/app#/p/gracey_dev/governance-drift-researcher-v2)**
+— the published app, open to anyone, no account needed. Set a scan date, hit **Run scan**, and
+watch the pipeline suspend at the human approval gate with the draft report in hand.
+
+**[Or clone it into your own projects →](https://app.weavemind.ai/community/9be42678-5f9f-42ae-8ca8-0c0b1ee623d3)**
+— one click from the community gallery, then edit and re-run it as your own.
+
+A full run costs about **$0.03**. This repo carries the same program as source:
+[`main.weft`](main.weft) (~20 nodes, Weft mvp dialect;
 [`main.run-variant.weft`](main.run-variant.weft) is the credential-free variant).
 
 **Or run it as a Python CLI** — `pip install governance-drift`, then `govdrift scan` emits
