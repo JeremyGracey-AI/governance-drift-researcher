@@ -17,9 +17,15 @@ This is the Python reference implementation. The same pipeline also runs as a
 ## Install
 
 ```bash
-pip install governance-drift          # file-based scan (pyyaml only)
-pip install "governance-drift[http]"  # + live Foundry/tenant HTTP sources
+pip install governance-drift          # the govdrift CLI (pyyaml only)
+pip install "governance-drift[http]"  # + httpx, for wiring live sources in Python
 ```
+
+**Scope:** `govdrift scan` reads local files. The `[http]` extra adds `httpx` and the
+`http_fetcher` building block for consumers who construct sources in Python against live
+Foundry/tenant endpoints — `http_fetcher(url, client)` takes a caller-owned client, so its
+lifecycle stays with you rather than with the CLI. A URL branch for `govdrift scan` is not
+shipped yet.
 
 ## Scan
 
