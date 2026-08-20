@@ -16,6 +16,7 @@ than after the fact.
 | `ISSUE-DRAFT.md` | Issue text, if the report goes in as an issue |
 | `PR-DRAFT.md` | PR title and body, plus the fork-and-push commands |
 | `0001-loom-attribute-classifier.patch` | The change itself, `git am`-applicable |
+| `DISCORD-REPLY-DRAFT.md` | Reply to Quentin's 2026-08-20 questions on the mvp runtime and the three weft dialects |
 
 ## The change
 
