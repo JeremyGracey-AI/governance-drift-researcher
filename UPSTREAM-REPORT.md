@@ -167,16 +167,53 @@ builder-vs-deployment diff. I only caught it because I verified against
 `api/v1/publish/by-user/...` rather than the logged-in view. An author who fixes a bug in the
 obvious place will reasonably believe it shipped.
 
-### 5. Opening a deployment scope started a billable run I did not request
+### 5. Entering a deployment scope starts a billable run, every time
 
-It behaved correctly — suspended at the human gate, published nothing — but navigation should
-not spend credits.
+First reported here as a one-off. It is not: three for three, deterministic. Switching into the
+deployment scope — via `Manage` on the deployment row, or the scope switcher — starts a pipeline
+run with no confirmation. Each behaved correctly, suspending at the human gate and publishing
+nothing, so the governance is sound. But navigating to look at a deployment should not spend the
+owner's credits, and there is no way to inspect a live deployment without paying for a run.
 
-### 6. Public metadata defaults
+### 6. The Overwrite button exists only in the scope where it is rejected
 
-The deployment's public name defaulted to `Untitled Project`, and its SEO description appears
-seeded from an assistant chat turn ("I added three additional fields into the configuration...").
-Publishing should require a name and should not promote conversational text into public metadata.
+Re-publishing over an existing deployment is documented in `publish.rs:207-210` and works. Finding
+it does not.
+
+The deployment row carries an **Overwrite** button, but only when you are viewing the deployment
+scope. Clicking it returns:
+
+```
+Cannot publish a deployment project. Publish its origin builder project instead.
+```
+
+From the builder scope, where publishing *is* permitted, that row shows `Manage | Pause | delete`
+and no Overwrite at all. So the control is rendered exactly where the API refuses it and absent
+where it would succeed — the same shape as findings 1 and 2, a UI offering an action the backend
+will not honour, with nothing reconciling the two.
+
+The path that does work is undiscoverable: go to the builder and, in the form headed **"Publish to
+a new URL"**, retype the *existing* slug. That is the documented re-publish path, but the heading
+says the opposite of what the action does, and the correct move is visually identical to the
+mistake that forks a second deployment at a second URL. Worse, the slug field auto-fills from the
+project name, so after renaming a project the prefilled value is a *different* slug than the live
+one — the default is the fork, and the safe action requires knowing to overwrite it.
+
+A rename of the Overwrite affordance, or surfacing it on the builder's deployment row where the
+API accepts it, would cost very little.
+
+### 7. Public metadata defaults, and a name that cannot be set where it is shown
+
+The deployment's public name defaulted to `Untitled Project` and its SEO description was seeded
+from an assistant chat turn ("I added three additional fields into the configuration..."). Both
+were public for a day. Publishing should require a name and should not promote conversational text
+into public metadata.
+
+Fixing it surfaced a related constraint: `publish.rs:382` is `let project_name = builder.name;`
+with no request override, while the line below it takes `req.description.or(project_description)`.
+So a deployment's description can be set at publish time but its **name can only be changed by
+renaming the builder project** — a rename of something the visitor never sees, in order to change
+something they do. Both are now corrected on my deployment via the re-publish path above.
 
 ### Why I think this fits your stated direction rather than fighting it
 
@@ -204,8 +241,9 @@ error (`Did you mean 'key:'?`), and decide positional-vs-attribute on whether th
 with an identifier followed by `:` outside quotes, rather than on `includes(':')`. Both are
 local to one function and would carry over as test cases when parsing moves to Rust.
 
-Happy to open issues or a PR for any subset of this, or to leave it here if the Rust migration
-makes a dashboard patch not worth the review.
+Findings 1 and 2 are submitted as [WeaveMindAI/weft#16](https://github.com/WeaveMindAI/weft/pull/16),
+with tests. Findings 3-7 are publish-pipeline and UX observations, deliberately kept out of that PR
+since it is scoped to the parser — happy to open issues for any subset, or to leave them here.
 
 ## Context
 
