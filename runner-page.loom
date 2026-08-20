@@ -1,0 +1,53 @@
+# Runner page for the Governance Drift Researcher cloud deployment.
+# Mirrored from the WeaveMind project so the UI layer is reviewable in git
+# alongside main.weft. Source of truth is the deployment; re-export after edits:
+#   curl https://api.weavemind.ai/api/v1/publish/by-user/gracey_dev/governance-drift-researcher-v2
+
+theme { skin:"default", layout:"wide", density:"comfortable" }
+
+navbar sticky:true {
+  logo name:"Drift Researcher"
+  navlink label:"How it works" href:"#how"
+}
+
+hero
+  title:"Governance Drift Researcher"
+  subtitle:"Scan your AI platform for model retirements and unapproved agents. Review the draft. Publish when ready."
+  size:"md"
+
+columns cols:2 gap:"lg" {
+  field runDate value as:date label:"Scan date"
+  cta label:"Run scan" action:"run" size:"lg"
+}
+
+columns cols:2 gap:"xl" align:"stretch" {
+  output draftPreview data
+    as:markdown
+    height:"60vh"
+    label:"Draft report"
+    placeholder:"Run a scan to generate the draft drift report. You'll be asked to review it before publishing."
+  output published data
+    as:markdown
+    height:"60vh"
+    label:"Published report"
+    placeholder:"Approved reports will appear here after human review."
+}
+
+section title:"Configuration" padding:"lg" background:"subtle" {
+  columns cols:3 gap:"lg" {
+    field llmConfig model as:text label:"LLM Model"
+    field severityThreshold value as:select options:"critical, high, medium, low, info" label:"Severity Threshold"
+    field includeLiterature value as:toggle label:"Include Literature Review"
+  }
+}
+
+section title:"How it works" padding:"lg" background:"subtle" {
+  feature-grid {
+    feature icon:"search" title:"Detect drift" "Compares your vendor manifest, approved inventory, and live tenant state to find model retirements and unapproved agents."
+    feature icon:"shield" title:"Verify evidence" "Every finding is checked against its source data by SHA-256 hash and JSON path before it reaches the report."
+    feature icon:"book-open" title:"Research impact" "Pulls relevant papers from Semantic Scholar and drafts a migration-impact note grounded in the literature."
+    feature icon:"check-circle" title:"Human gate" "A reviewer approves or rejects the draft before anything is published."
+  }
+}
+
+footer note:"Governance Drift Researcher — demo with hardcoded source data"

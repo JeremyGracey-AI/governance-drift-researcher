@@ -1,0 +1,29 @@
+# Runner page for the Governance Drift Researcher cloud deployment.
+# Mirrored from the WeaveMind project so the UI layer is reviewable in git
+# alongside main.weft. Source of truth is the deployment; re-export after edits:
+#   curl https://api.weavemind.ai/api/v1/publish/by-user/gracey_dev/governance-drift-researcher-v2
+
+foundryRaw @layout 40 347
+inventoryRaw @layout 40 476
+tenantRaw @layout 40 678
+runDate @layout 40 322
+parseFoundry @layout 40 459
+parseInventory @layout 40 662
+parseTenant @layout 40 865
+detectRetirement @layout 402 519
+detectUnapproved @layout 402 700
+verify @layout 754 507
+s2Query @layout 1418 165
+s2Corpus @layout 1750 177
+impactPrompt @layout 2082 177
+impact @layout 2414 177
+render @layout 2756 865
+review @layout 3088 877
+publishGate @layout 3420 865
+published @layout 3752 865
+draftPreview @layout 3088 1058
+llmConfig @layout 2082 40
+llmModel @layout 4080 0
+severityThreshold @layout 402 364
+includeLiterature @layout 754 209
+literatureGate @layout 1086 209
