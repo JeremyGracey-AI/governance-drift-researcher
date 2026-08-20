@@ -1,7 +1,15 @@
 # Upstream submission drafts — Loom parser
 
-Drafts for `WeaveMindAI/weft`. **Nothing here has been filed or pushed upstream.**
-Staged in public so the review happens in the open, before submission rather than after.
+Drafts for `WeaveMindAI/weft`, kept as the record of what was submitted.
+
+**Status: submitted 2026-08-19 as [WeaveMindAI/weft#16](https://github.com/WeaveMindAI/weft/pull/16)**
+from branch `fix/loom-attribute-classifier` on [the fork](https://github.com/JeremyGracey-AI/weft).
+The PR body is `PR-DRAFT.md` below, near-verbatim. `ISSUE-DRAFT.md` was the alternative
+route and went unused; it is kept because it states the bug without the patch, which is
+the more portable description.
+
+These were staged in public *before* submission so the review happened in the open rather
+than after the fact.
 
 | File | What it is |
 |---|---|
