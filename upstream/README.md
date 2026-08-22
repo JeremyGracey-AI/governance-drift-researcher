@@ -51,3 +51,9 @@ Background and the full finding list: [`UPSTREAM-REPORT.md`](../UPSTREAM-REPORT.
 `weft`'s CONTRIBUTING.md: *"No AI-generated slop. If an AI wrote your PR, read it
 yourself first."* These drafts were AI-assisted. Every claim is cited to code or to
 executed output so it can be checked — and it should be, by a human, first.
+
+## Published writeup
+
+- `missing-colon.html` — "The Missing Colon", the narrative writeup of the bare `key=` Loom finding.
+  Published as an Artifact: https://claude.ai/code/artifact/dc7b0295-8d88-4ce1-8ebb-8e4e4e82f9fc
+  Source rescued from a session scratchpad on 2026-08-21 so it lives with the finding it documents.

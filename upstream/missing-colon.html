@@ -1,0 +1,915 @@
+<title>The Missing Colon</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Serif:wght@400;600&display=swap">
+
+<style>
+  :root {
+    --ground:      #F9FAFB;
+    --surface:     #EFF1F4;
+    --surface-2:   #E4E8ED;
+    --border:      #D6DBE2;
+    --border-soft: #E6EAEF;
+    --ink:         #14181D;
+    --ink-muted:   #58616E;
+    --ink-faint:   #7C8694;
+    --accent:      #B4690E;
+    --accent-soft: #F5E7D2;
+    --broken:      #A8323C;
+    --broken-soft: #F7E3E5;
+    --fixed:       #2F6F4F;
+    --fixed-soft:  #DEEDE4;
+
+    --measure: 68ch;
+    --s1: 0.5rem;  --s2: 0.75rem; --s3: 1rem;
+    --s4: 1.5rem;  --s5: 2.25rem; --s6: 3.5rem; --s7: 5rem;
+
+    --sans:  "IBM Plex Sans", ui-sans-serif, system-ui, sans-serif;
+    --serif: "IBM Plex Serif", Georgia, "Times New Roman", serif;
+    --mono:  "IBM Plex Mono", ui-monospace, SFMono-Regular, Menlo, monospace;
+  }
+
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --ground:      #0F1216;
+      --surface:     #171B21;
+      --surface-2:   #1F242C;
+      --border:      #2C333C;
+      --border-soft: #232932;
+      --ink:         #E6E9ED;
+      --ink-muted:   #98A2B0;
+      --ink-faint:   #6F7987;
+      --accent:      #E0A03C;
+      --accent-soft: #33281A;
+      --broken:      #E0707A;
+      --broken-soft: #331E21;
+      --fixed:       #6FBF95;
+      --fixed-soft:  #16281F;
+    }
+  }
+
+  :root[data-theme="dark"] {
+    --ground:      #0F1216;
+    --surface:     #171B21;
+    --surface-2:   #1F242C;
+    --border:      #2C333C;
+    --border-soft: #232932;
+    --ink:         #E6E9ED;
+    --ink-muted:   #98A2B0;
+    --ink-faint:   #6F7987;
+    --accent:      #E0A03C;
+    --accent-soft: #33281A;
+    --broken:      #E0707A;
+    --broken-soft: #331E21;
+    --fixed:       #6FBF95;
+    --fixed-soft:  #16281F;
+  }
+
+  * { box-sizing: border-box; }
+
+  body {
+    margin: 0;
+    background: var(--ground);
+    color: var(--ink);
+    font-family: var(--sans);
+    font-size: 17px;
+    line-height: 1.65;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  .wrap {
+    max-width: 78rem;
+    margin: 0 auto;
+    padding: var(--s6) var(--s4) var(--s7);
+  }
+
+  .col { max-width: var(--measure); }
+
+  /* ---------- masthead ---------- */
+
+  .eyebrow {
+    font-family: var(--mono);
+    font-size: 0.7rem;
+    letter-spacing: 0.16em;
+    text-transform: uppercase;
+    color: var(--ink-faint);
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--s3);
+    align-items: center;
+  }
+  .eyebrow .sep { color: var(--border); }
+
+  h1 {
+    font-family: var(--serif);
+    font-weight: 600;
+    font-size: clamp(2.4rem, 6vw, 3.9rem);
+    line-height: 1.04;
+    letter-spacing: -0.02em;
+    text-wrap: balance;
+    margin: var(--s4) 0 var(--s3);
+  }
+
+  .standfirst {
+    font-family: var(--serif);
+    font-size: clamp(1.1rem, 2.2vw, 1.32rem);
+    line-height: 1.55;
+    color: var(--ink-muted);
+    max-width: 58ch;
+    margin: 0 0 var(--s5);
+  }
+
+  /* ---------- the two characters ---------- */
+
+  .thesis {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: clamp(var(--s4), 5vw, var(--s6));
+    padding: var(--s5) var(--s4);
+    margin: var(--s5) 0 var(--s6);
+    border-top: 1px solid var(--border);
+    border-bottom: 1px solid var(--border);
+  }
+  .glyphset { display: flex; align-items: baseline; gap: var(--s4); }
+  .glyph {
+    font-family: var(--mono);
+    font-size: clamp(3.5rem, 11vw, 6rem);
+    font-weight: 500;
+    line-height: 1;
+    display: block;
+  }
+  .glyph.ok  { color: var(--fixed); }
+  .glyph.bad { color: var(--broken); }
+  .glyph-cap {
+    font-family: var(--mono);
+    font-size: 0.68rem;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--ink-faint);
+    display: block;
+    margin-top: var(--s2);
+    text-align: center;
+  }
+  .thesis p {
+    margin: 0;
+    max-width: 44ch;
+    font-size: 1.02rem;
+    color: var(--ink-muted);
+  }
+  .thesis strong { color: var(--ink); font-weight: 600; }
+
+  /* ---------- routing callout ---------- */
+
+  .routing {
+    border: 1px solid var(--accent);
+    border-left-width: 4px;
+    background: var(--accent-soft);
+    padding: var(--s4);
+    margin: 0 0 var(--s6);
+    max-width: var(--measure);
+  }
+  .routing h2 {
+    font-family: var(--mono);
+    font-size: 0.7rem;
+    letter-spacing: 0.16em;
+    text-transform: uppercase;
+    color: var(--accent);
+    margin: 0 0 var(--s2);
+  }
+  .routing p { margin: 0 0 var(--s2); font-size: 0.98rem; }
+  .routing p:last-child { margin-bottom: 0; }
+
+  /* ---------- sections ---------- */
+
+  section { margin-bottom: var(--s6); }
+
+  h2.head {
+    font-family: var(--serif);
+    font-size: clamp(1.45rem, 3.2vw, 1.95rem);
+    font-weight: 600;
+    letter-spacing: -0.012em;
+    line-height: 1.2;
+    text-wrap: balance;
+    margin: 0 0 var(--s2);
+    padding-top: var(--s3);
+    border-top: 2px solid var(--ink);
+  }
+  h3 {
+    font-family: var(--sans);
+    font-size: 1rem;
+    font-weight: 600;
+    letter-spacing: 0.005em;
+    margin: var(--s5) 0 var(--s2);
+  }
+  p { margin: 0 0 var(--s3); max-width: var(--measure); }
+  ul, ol { max-width: var(--measure); padding-left: 1.15rem; margin: 0 0 var(--s3); }
+  li { margin-bottom: var(--s2); }
+
+  code {
+    font-family: var(--mono);
+    font-size: 0.88em;
+    background: var(--surface);
+    border: 1px solid var(--border-soft);
+    padding: 0.1em 0.34em;
+    border-radius: 2px;
+    word-break: break-word;
+  }
+  a { color: var(--accent); text-decoration-thickness: 1px; text-underline-offset: 2px; }
+  a:focus-visible, summary:focus-visible {
+    outline: 2px solid var(--accent);
+    outline-offset: 2px;
+  }
+
+  /* ---------- evidence blocks ---------- */
+
+  .evidence {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    margin: 0 0 var(--s4);
+    overflow: hidden;
+  }
+  .evidence-label {
+    font-family: var(--mono);
+    font-size: 0.66rem;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--ink-faint);
+    padding: var(--s2) var(--s3);
+    border-bottom: 1px solid var(--border);
+    background: var(--surface-2);
+  }
+  pre {
+    font-family: var(--mono);
+    font-size: 0.83rem;
+    line-height: 1.7;
+    margin: 0;
+    padding: var(--s3);
+    overflow-x: auto;
+    white-space: pre;
+    tab-size: 2;
+  }
+  .diff { padding: 0; }
+  .diff .row {
+    display: block;
+    padding: 0.15rem var(--s3);
+    white-space: pre;
+    overflow-x: auto;
+  }
+  .diff .row.minus { background: var(--broken-soft); border-left: 3px solid var(--broken); }
+  .diff .row.plus  { background: var(--fixed-soft);  border-left: 3px solid var(--fixed);  }
+  .diff .row.ctx   { border-left: 3px solid transparent; color: var(--ink-muted); }
+  .mark-bad { color: var(--broken); font-weight: 600; }
+  .mark-ok  { color: var(--fixed);  font-weight: 600; }
+
+  /* ---------- tables ---------- */
+
+  .tablewrap { overflow-x: auto; margin: 0 0 var(--s4); border: 1px solid var(--border); }
+  table { border-collapse: collapse; width: 100%; font-size: 0.92rem; min-width: 34rem; }
+  caption {
+    text-align: left;
+    font-family: var(--mono);
+    font-size: 0.66rem;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--ink-faint);
+    padding: var(--s2) var(--s3);
+    background: var(--surface-2);
+    border-bottom: 1px solid var(--border);
+  }
+  th, td {
+    text-align: left;
+    padding: var(--s2) var(--s3);
+    border-bottom: 1px solid var(--border-soft);
+    vertical-align: top;
+  }
+  thead th {
+    font-family: var(--mono);
+    font-size: 0.66rem;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--ink-faint);
+    font-weight: 500;
+    border-bottom: 1px solid var(--border);
+  }
+  tbody tr:last-child td { border-bottom: none; }
+  td.num, td.t {
+    font-family: var(--mono);
+    font-variant-numeric: tabular-nums;
+    white-space: nowrap;
+    color: var(--ink-muted);
+    font-size: 0.85rem;
+  }
+  .layer {
+    font-family: var(--mono);
+    font-size: 0.85rem;
+    font-weight: 600;
+    color: var(--accent);
+    white-space: nowrap;
+  }
+
+  .pill {
+    display: inline-block;
+    font-family: var(--mono);
+    font-size: 0.66rem;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    padding: 0.16rem 0.45rem;
+    border: 1px solid currentColor;
+    border-radius: 2px;
+    white-space: nowrap;
+  }
+  .pill.broken { color: var(--broken); }
+  .pill.fixed  { color: var(--fixed); }
+  .pill.open   { color: var(--accent); }
+
+  /* ---------- findings ---------- */
+
+  .finding {
+    border-left: 3px solid var(--border);
+    padding-left: var(--s3);
+    margin: 0 0 var(--s4);
+    max-width: var(--measure);
+  }
+  .finding.primary { border-left-color: var(--accent); }
+  .finding h3 { margin-top: 0; }
+  .finding .tag {
+    font-family: var(--mono);
+    font-size: 0.66rem;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--ink-faint);
+    display: block;
+    margin-bottom: 0.2rem;
+  }
+
+  .note {
+    font-size: 0.9rem;
+    color: var(--ink-muted);
+    border-top: 1px solid var(--border-soft);
+    padding-top: var(--s2);
+    max-width: var(--measure);
+  }
+
+  footer {
+    margin-top: var(--s7);
+    padding-top: var(--s3);
+    border-top: 2px solid var(--ink);
+    font-family: var(--mono);
+    font-size: 0.72rem;
+    letter-spacing: 0.06em;
+    color: var(--ink-faint);
+    max-width: var(--measure);
+  }
+
+  @media (max-width: 40rem) {
+    body { font-size: 16px; }
+    .wrap { padding: var(--s5) var(--s3) var(--s6); }
+    .thesis { flex-direction: column; align-items: flex-start; gap: var(--s4); }
+  }
+</style>
+
+<div class="wrap">
+
+  <header class="col">
+    <div class="eyebrow">
+      <span>Defect report</span><span class="sep">/</span>
+      <span>Loom &amp; WeaveMind Builder</span><span class="sep">/</span>
+      <span>19 Aug 2026</span><span class="sep">/</span>
+      <span>Jeremy Gracey</span>
+    </div>
+    <h1>The Missing Colon</h1>
+    <p class="standfirst">
+      A published demo rendered its own markup as body copy for a day. One character caused it, no
+      diagnostic ever fired, and reading the parser afterwards turned up a worse bug sitting
+      underneath it.
+    </p>
+  </header>
+
+  <div class="thesis">
+    <div class="glyphset">
+      <div>
+        <span class="glyph ok">:</span>
+        <span class="glyph-cap">Loom</span>
+      </div>
+      <div>
+        <span class="glyph bad">=</span>
+        <span class="glyph-cap">Weft · HTML · JSX</span>
+      </div>
+    </div>
+    <p>
+      Loom attaches attributes with a colon. Every markup language it resembles — and its own
+      sibling DSL — uses an equals sign. <strong>The parser accepted the wrong one in silence</strong>
+      and rendered it to visitors as prose.
+    </p>
+  </div>
+
+  <div class="routing">
+    <h2>Routing — read before filing</h2>
+    <p>
+      These are defects in <strong>Loom</strong>, the runner-page DSL, and in the publish pipeline.
+      The <strong>Weft compiler is not implicated anywhere in this report</strong> — it behaved
+      correctly throughout.
+    </p>
+    <p>
+      Both live in the open-source repo, so this is filable there:
+      <code>dashboard/src/lib/ai/loom-parser.ts</code> and
+      <code>crates/weft-api/src/publish.rs</code> in <code>WeaveMindAI/weft</code>. Route it to the
+      <strong>dashboard</strong>, not the language crates.
+    </p>
+    <p>
+      One caveat worth stating when filing: ROADMAP's <em>“Centralize parsing and compilation in
+      Rust”</em> covers this exact file, and <code>publish.rs</code> already notes “the dashboard is
+      the only place that understands the loom syntax.” Keep any patch small enough to survive that
+      migration, or to carry over as a test case.
+    </p>
+  </div>
+
+  <section class="col">
+    <h2 class="head">What visitors saw</h2>
+    <p>
+      The published app carries a “How it works” strip of four cards. Three rendered correctly.
+      The second rendered its own source markup as the first words of the card, and lost its
+      heading entirely.
+    </p>
+    <div class="evidence">
+      <div class="evidence-label">Rendered output — card 2 of 4, as served to the public</div>
+<pre><span class="mark-bad">title="Verify evidence"</span> Every finding is checked against its
+source data by SHA-256 hash and JSON path before it reaches
+the report.</pre>
+    </div>
+    <p>
+      Its siblings showed bold headings — <em>Detect drift</em>, <em>Research impact</em>,
+      <em>Human gate</em>. Card 2 showed none. The failure was fully visible on the page and
+      entirely invisible to the toolchain.
+    </p>
+  </section>
+
+  <section class="col">
+    <h2 class="head">How it was found</h2>
+    <p>
+      Not by a linter, a test, or a warning. By looking at the page.
+    </p>
+    <p>
+      The demo was being audited for a separate reason — confirming whether the app URL was
+      publicly reachable before linking it from a portfolio site. The first screenshot of the
+      running app showed the malformed card. Source confirmation followed from the publish
+      endpoint, which requires no authentication:
+    </p>
+    <div class="evidence">
+      <div class="evidence-label">Reproducible by anyone, no account</div>
+<pre>curl https://api.weavemind.ai/api/v1/publish/by-user/\
+gracey_dev/governance-drift-researcher-v2</pre>
+    </div>
+    <p>
+      The response carries <code>weftCode</code>, <code>loomCode</code> and
+      <code>layoutCode</code> as plain strings. Grepping <code>loomCode</code> localized the
+      defect to line 42 of 48.
+    </p>
+  </section>
+
+  <section class="col">
+    <h2 class="head">Line 42</h2>
+    <div class="evidence diff">
+      <div class="evidence-label">loomCode — <code>feature-grid</code> block</div>
+      <span class="row ctx">41   feature icon:"search" title:"Detect drift" "Compares your vendor…"</span>
+      <span class="row minus">42   feature icon:"shield" title<span class="mark-bad">=</span>"Verify evidence" "Every finding is checked…"</span>
+      <span class="row plus">42   feature icon:"shield" title<span class="mark-ok">:</span>"Verify evidence" "Every finding is checked…"</span>
+      <span class="row ctx">43   feature icon:"book-open" title:"Research impact" "Pulls relevant papers…"</span>
+      <span class="row ctx">44   feature icon:"check-circle" title:"Human gate" "A reviewer approves…"</span>
+    </div>
+    <p>
+      One of the file's seven <code>title</code> attributes used <code>=</code> instead of
+      <code>:</code>. A scan of the endpoint after the fix returned zero <code>=</code> separators
+      anywhere in the file, across all forty-odd attributes — confirming line 42 was the only one.
+    </p>
+    <h3>The failure mode, from the source</h3>
+    <p>
+      The parser is open source — <code>dashboard/src/lib/ai/loom-parser.ts</code> in
+      <code>WeaveMindAI/weft</code>. This is <code>parseBrick</code>, lines 766–773:
+    </p>
+    <div class="evidence">
+      <div class="evidence-label">parseBrick — the attribute/positional classifier</div>
+<pre>for (const t of rest) {
+  if (t.includes(':') &amp;&amp; !t.startsWith('[')) attrTokens.push(t);
+  else if (t.startsWith('[') &amp;&amp; t.endsWith(']')) attrTokens.push(t);
+  <span class="mark-bad">else positional.push(parseQuotedString(t));</span>
+}</pre>
+    </div>
+    <p>
+      The classifier is <strong>a substring test for a colon</strong>. A token without one is not
+      an error — it is positional content, joined into <code>props.content</code>. So
+      <code>title="Verify evidence"</code> became prose, and the card lost its heading.
+    </p>
+    <p>
+      <code>state.errors</code> and <code>LoomParseError</code> already exist, and are used two
+      lines above for <code>Unknown brick</code>. The error channel is there. This path simply
+      doesn't reach for it.
+    </p>
+    <p>
+      The consequence is the reportable part: <strong>no error was raised at any stage</strong> —
+      not in the editor, not on save, not on publish, not at render. A malformed attribute became
+      public-facing copy with no signal anywhere in the chain.
+    </p>
+  </section>
+
+  <section class="col">
+    <h2 class="head">Why this error, and not some other</h2>
+    <p>
+      This is not a random typo. Two independent forces push a writer — human or model — toward
+      exactly <code>=</code> at exactly that position.
+    </p>
+    <div class="tablewrap">
+      <table>
+        <caption>Separator conventions in play</caption>
+        <thead>
+          <tr><th>Language</th><th>Attach a value to a name</th><th>Present in this project</th></tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><strong>Loom</strong></td>
+            <td class="t">title:"…"</td>
+            <td>48 lines</td>
+          </tr>
+          <tr>
+            <td><strong>Weft</strong> <span style="color:var(--ink-faint)">(sibling DSL)</span></td>
+            <td class="t">runDate = Text { … }</td>
+            <td>338 lines</td>
+          </tr>
+          <tr>
+            <td>HTML / JSX / XML</td>
+            <td class="t">title="…"</td>
+            <td>Every model's training data</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+    <p>
+      Loom is a <em>markup-shaped</em> DSL — nested elements with quoted attributes — that uses the
+      one separator markup never uses. And it sits in the same project as Weft, which binds with
+      <code>=</code> at the outer level. Anyone fluent in either neighbour will produce
+      <code>=</code> here, and nothing will tell them they were wrong.
+    </p>
+    <p>
+      That makes this a design finding, not just an instance. The single highest-value change is
+      not fixing one line — it is <strong>raising a parse error on <code>attr=</code> inside a Loom
+      element</strong>, ideally with a did-you-mean pointing at <code>attr:</code>.
+    </p>
+  </section>
+
+  <section class="col">
+    <h2 class="head">Who caused it</h2>
+    <p>
+      Four layers, ordered from the keystroke outward. Only the first is about who typed
+      something; the rest are why it survived.
+    </p>
+    <div class="tablewrap">
+      <table>
+        <caption>Layered causality</caption>
+        <thead>
+          <tr><th>Layer</th><th>Cause</th><th>Owner</th></tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td class="layer">Proximate</td>
+            <td>
+              The Loom was generated by the platform's own Tangle “Runner Page Builder” agent,
+              across several visible rounds of iteration.
+              <span class="note" style="border:0;padding:0;display:block;margin-top:.35rem">
+                Hedged deliberately: the transcript shows multiple generation rounds, and the
+                specific round that emitted the <code>feature-grid</code> block containing line 42
+                was not isolated. No evidence of a later hand-edit was found, but the transcript
+                reviewed does not rule one out.
+              </span>
+            </td>
+            <td>WeaveMind Builder</td>
+          </tr>
+          <tr>
+            <td class="layer">Enabling</td>
+            <td>
+              The Loom parser accepted <code>attr="value"</code> and silently demoted it to content.
+              No diagnostic at edit, save, publish, or render. <strong>This is the bug worth
+              filing.</strong>
+            </td>
+            <td>Loom parser</td>
+          </tr>
+          <tr>
+            <td class="layer">Root</td>
+            <td>
+              Sibling DSLs with opposing separator conventions, in a markup-shaped syntax that
+              inverts the universal markup convention. The error is predictable, not incidental.
+            </td>
+            <td>Loom language design</td>
+          </tr>
+          <tr>
+            <td class="layer">Structural</td>
+            <td>
+              The Loom source exists only in the cloud project. It is not in the Git repository —
+              verified: no <code>.loom</code> file is tracked, while <code>main.weft</code> and
+              <code>main.run-variant.weft</code> are. It never passed through review, diff, or CI.
+            </td>
+            <td>Publish model</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+    <h3>What the human gate could have caught</h3>
+    <p>
+      Nothing. The pipeline's own governance gate covers <em>report publication</em>, not the UI
+      shell around it. The Weft half of this project was version-controlled, compiler-validated and
+      reviewed; the Loom half was generated, never diffed, never validated, and shipped. The bug
+      lived precisely in the gap between them.
+    </p>
+    <p>
+      Which is the uncomfortable part, and worth stating plainly: this is a governance-drift
+      researcher whose own interface layer drifted, silently, outside every governed surface it
+      was built to demonstrate.
+    </p>
+  </section>
+
+  <section class="col">
+    <h2 class="head">What was done</h2>
+    <div class="tablewrap">
+      <table>
+        <caption>Sequence — 19 Aug 2026</caption>
+        <thead>
+          <tr><th>#</th><th>Action</th><th>Result</th></tr>
+        </thead>
+        <tbody>
+          <tr><td class="num">1</td><td>Observed the malformed card in a screenshot of the running app</td><td><span class="pill broken">Found</span></td></tr>
+          <tr><td class="num">2</td><td>Fetched the publish endpoint with no cookies; grepped <code>loomCode</code></td><td>Localized to line 42</td></tr>
+          <tr><td class="num">3</td><td>Fixed <code>=</code> → <code>:</code> in the <strong>builder project</strong> and saved</td><td>Editor confirmed the change</td></tr>
+          <tr><td class="num">4</td><td>Re-fetched the public endpoint to verify</td><td><span class="pill broken">Still broken</span></td></tr>
+          <tr><td class="num">5</td><td>Switched to <strong>deployment</strong> scope — loading it triggered an unrequested pipeline run</td><td>~$0.03 of account credit; suspended at the human gate, nothing published</td></tr>
+          <tr><td class="num">6</td><td>Repeated the identical fix in deployment scope</td><td>Applied live</td></tr>
+          <tr><td class="num">7</td><td>Re-fetched the public endpoint</td><td><span class="pill fixed">Fixed</span></td></tr>
+        </tbody>
+      </table>
+    </div>
+    <p>
+      Step 4 is the second reportable finding. A builder-scope fix does <em>not</em> reach the
+      published deployment — the two hold independent frozen copies — and nothing in the interface
+      indicates the deployment has diverged from its source. There is no staleness badge, no
+      “republish needed”, no diff.
+    </p>
+    <p>
+      Verification was deliberately done against the unauthenticated public endpoint rather than
+      the logged-in UI, which is the only reason the failed propagation was caught at all.
+    </p>
+    <p>
+      Step 5 is worth a separate note: merely opening the deployment scope started a billable
+      pipeline run that was never requested. It behaved correctly — it suspended at the human gate
+      and published nothing — but navigation should not spend credits.
+    </p>
+  </section>
+
+  <section class="col">
+    <h2 class="head">Findings, ranked</h2>
+
+    <div class="finding primary">
+      <span class="tag">Finding 1 · Loom parser · highest value</span>
+      <h3>Malformed attributes fail silently into content</h3>
+      <p>
+        <code>attr="value"</code> inside a Loom element raises no error at any stage and is
+        rendered to visitors as body text. Contrast the Weft compiler, which ships thirteen
+        validation passes and Levenshtein did-you-mean suggestions. The two halves of the same
+        product have opposite postures toward invalid input.
+      </p>
+    </div>
+
+    <div class="finding primary">
+      <span class="tag">Finding 2 · Loom parser · found by reading the code</span>
+      <h3>Any positional string containing a colon is destroyed</h3>
+      <p>
+        The same substring test causes a worse bug, one this project happened not to trigger.
+        Because the check is <code>includes(':')</code> rather than structural, a
+        <em>positional</em> string with a colon anywhere in it is misclassified as an attribute,
+        then split at <code>indexOf(':')</code>. Verified by running the parser's own functions:
+      </p>
+      <div class="evidence">
+        <div class="evidence-label">Executed — transcribed verbatim from main</div>
+<pre>src      text "Docs: https://example.com"
+content  <span class="mark-bad">undefined</span>
+props    {"\"Docs":" https://example.com\""}
+
+src      text "Runs 9:00 to 17:00"
+content  <span class="mark-bad">undefined</span>
+props    {"\"Runs 9":"00 to 17:00\""}</pre>
+      </div>
+      <p>
+        The text doesn't render wrong — <strong>it disappears</strong>, replaced by a garbage
+        attribute. Times, URLs, ratios and ordinary prose all hit it. The parser's own
+        quick-reference example, <code>text "Paste your robotic draft below."</code>, is one colon
+        away from vanishing. Attribute <em>values</em> with colons are fine; only positional
+        strings break.
+      </p>
+    </div>
+
+    <div class="finding">
+      <span class="tag">Finding 3 · Publish pipeline · narrowed</span>
+      <h3>Builder and deployment diverge with no staleness indicator</h3>
+      <p>
+        The divergence itself is <em>correct</em> design, and the earlier draft of this report was
+        wrong to imply otherwise: <code>publish.rs</code> lines 202–219 show a deployment is a
+        deliberately cloned <code>projects</code> row, so a live page doesn't mutate under visitors
+        when someone edits the builder. That is the right call.
+      </p>
+      <p>
+        The gap is only that nothing surfaces it. No staleness badge, no “republish needed”, no
+        builder-versus-deployment diff — so a fix applied in the obvious place looks like it
+        shipped.
+      </p>
+    </div>
+
+    <div class="finding">
+      <span class="tag">Finding 4 · Publish pipeline · found while fixing the above</span>
+      <h3>The Overwrite button exists only where the API rejects it</h3>
+      <p>
+        Re-publishing over a live deployment works and is documented in
+        <code>publish.rs:207–210</code>. Finding it does not. The <strong>Overwrite</strong> button
+        appears only in the deployment scope, where clicking it returns
+        <em>“Cannot publish a deployment project. Publish its origin builder project instead.”</em>
+        The builder scope, where publishing <em>is</em> permitted, shows no Overwrite at all.
+      </p>
+      <p>
+        The path that works is to retype the <em>existing</em> slug into a form headed
+        <strong>“Publish to a new URL”</strong> — where the field auto-fills from the project name,
+        so after a rename the default value forks a second deployment instead of overwriting the
+        live one. The safe action is visually identical to the destructive one, and is not the
+        default.
+      </p>
+      <p class="note">
+        Same shape as Findings 1 and 2: an interface offering something the backend won't honor,
+        with nothing reconciling the two.
+      </p>
+    </div>
+
+    <div class="finding">
+      <span class="tag">Finding 5 · Publish pipeline · now reproducible</span>
+      <h3>Entering a deployment scope spends credits, every time</h3>
+      <p>
+        First noted as a one-off; it isn't. Three for three, deterministic — switching into a
+        deployment scope starts a pipeline run with no confirmation. Each behaved correctly,
+        suspending at the human gate and publishing nothing, so the governance holds. But there is
+        no way to <em>look at</em> a live deployment without paying for a run.
+      </p>
+    </div>
+
+    <div class="finding">
+      <span class="tag">Finding 6 · Publish pipeline</span>
+      <h3>Public metadata defaults are poor</h3>
+      <p>
+        The live app's public name defaulted to <code>Untitled Project</code>, and its SEO
+        description was seeded from an assistant chat message — it opened <em>“I added three
+        additional fields into the configuration.”</em> Both were public for a day. Publishing
+        should require a name, and should not promote conversational text into a public description.
+      </p>
+      <p>
+        Fixing it surfaced a related constraint: <code>publish.rs:382</code> is
+        <code>let project_name = builder.name;</code> with no request override, while the line below
+        takes <code>req.description.or(...)</code>. A deployment's description can be set at publish
+        time; its <strong>name can only be changed by renaming the builder</strong> — renaming
+        something no visitor sees in order to change something they do.
+      </p>
+      <p class="note">
+        Both corrected on the live deployment via the re-publish path, with weft and loom verified
+        byte-identical before and after.
+      </p>
+    </div>
+
+    <div class="finding">
+      <span class="tag">Finding 7 · Publish model</span>
+      <h3>Loom source has no version-controlled representation</h3>
+      <p>
+        Weft can live in a repository; Loom cannot leave the cloud project. Any team applying review
+        or CI to a WeaveMind app can govern only half of it.
+      </p>
+      <p class="note">
+        Closed on this side: the Loom is now exported from the publish endpoint and committed as
+        <code>runner-page.loom</code> and <code>runner-layout.loom</code>. That is a workaround for a
+        missing export/import path, not a fix.
+      </p>
+    </div>
+  </section>
+
+  <section class="col">
+    <h2 class="head">This isn't an outside opinion</h2>
+    <p>
+      The findings above were checked against the project's own documents before being written up.
+      They don't propose a new position — they report places where the code disagrees with one the
+      project has already published.
+    </p>
+    <div class="tablewrap">
+      <table>
+        <caption>Findings vs. the project's stated principles</caption>
+        <thead><tr><th>Their document says</th><th>Bearing</th></tr></thead>
+        <tbody>
+          <tr>
+            <td><strong>CONTRIBUTING.md</strong>, “What not to do”: <em>“Do not add silent
+              fallbacks. Fail loud.”</em> And under node design rules: <em>“Surface errors
+              loudly… No silent fallbacks, no guessed defaults.”</em></td>
+            <td>Findings 1 and 2 <em>are</em> that rule being broken, in the Loom parser.</td>
+          </tr>
+          <tr>
+            <td><strong>ROADMAP.md</strong>, “Explicit expand / gather”: an implicit mechanism that
+              <em>“AI writers (and humans) confuse”</em>, where expected behaviour <em>“silently
+              doesn't happen and produces wrong data”</em> — to be fixed by making it explicit and
+              erroring by default.</td>
+            <td>The same failure shape, already decided. Loom's positional fallback is that pattern
+              in the dashboard, and the same remedy applies.</td>
+          </tr>
+          <tr>
+            <td><strong>DESIGN.md</strong>, “Dense for AI generation”: <em>“If the AI keeps making
+              the same mistake, the language changes to make that mistake harder to express.”</em></td>
+            <td>A documented instance — with the platform's own builder agent as the AI.</td>
+          </tr>
+          <tr>
+            <td><strong>DESIGN.md</strong>, “Opinionated by design”: some things enforced, some
+              warnings, some overridable defaults.</td>
+            <td>A bare <code>key=value</code> token is currently none of the three.</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+    <h3>Smallest fix that catches both parser findings</h3>
+    <p>
+      In <code>parseBrick</code>'s classifier: treat a bare unquoted token matching
+      <code>^[a-zA-Z][\w-]*=</code> as an error (<em>“Did you mean <code>key:</code>?”</em>), and
+      decide positional-versus-attribute on whether the token <em>starts</em> with an identifier
+      followed by <code>:</code> outside quotes, rather than on <code>includes(':')</code>. Both
+      changes are local to one function.
+    </p>
+  </section>
+
+  <section class="col">
+    <h2 class="head">Reproduction</h2>
+    <p>
+      No throwaway deployments were created. Instead <code>tokenizeLine</code>,
+      <code>parseAttributes</code> and <code>parseBrick</code>'s classifier were transcribed
+      verbatim from <code>main</code> into a standalone script and run directly. It is committed as
+      <code>loom-parser-repro.mjs</code>, so a maintainer can check both findings in one command:
+    </p>
+    <div class="evidence">
+      <div class="evidence-label">Runnable, no platform account required</div>
+<pre>node loom-parser-repro.mjs</pre>
+    </div>
+    <p>
+      Case B reproduces the shipped defect exactly — <code>title</code> absent,
+      <code>content</code> carrying the literal markup. Cases C onward demonstrate the
+      colon-in-positional content loss.
+    </p>
+    <p class="note">
+      Expected behavior in both: a parse error naming the line, ideally suggesting
+      <code>key:</code>.
+    </p>
+  </section>
+
+  <section class="col">
+    <h2 class="head">Status &amp; disclosure</h2>
+    <div class="tablewrap">
+      <table>
+        <caption>As of publication</caption>
+        <thead><tr><th>Item</th><th>State</th></tr></thead>
+        <tbody>
+          <tr><td>Line 42 on the live deployment</td><td><span class="pill fixed">Fixed &amp; verified</span></td></tr>
+          <tr><td>Line 42 in the builder project</td><td><span class="pill fixed">Fixed</span></td></tr>
+          <tr><td>Loom source under version control</td><td><span class="pill fixed">Mirrored to the repo</span></td></tr>
+          <tr><td>Findings published, with runnable repro</td><td><span class="pill fixed">In UPSTREAM-REPORT.md</span></td></tr>
+          <tr><td>Findings 1 &amp; 2 submitted upstream</td><td><span class="pill fixed">weft#16, patched + tested</span></td></tr>
+          <tr><td>Public project name and description</td><td><span class="pill fixed">Corrected, code byte-identical</span></td></tr>
+          <tr><td>Findings 3–7 (publish pipeline)</td><td><span class="pill open">Reported, not filed</span></td></tr>
+        </tbody>
+      </table>
+    </div>
+    <p>
+      Both parser findings went upstream as
+      <a href="https://github.com/WeaveMindAI/weft/pull/16">WeaveMindAI/weft#16</a> — a patch that
+      classifies attribute tokens structurally and raises a <code>LoomParseError</code> on a bare
+      <code>key=</code>, with nine tests, six of which fail on <code>main</code>. The drafts were
+      staged publicly <em>before</em> submission, so the review of the report happened in the open
+      rather than after the fact.
+    </p>
+    <p>
+      The publish-pipeline observations were reported alongside but not filed as issues; routing is
+      theirs to direct. Full addendum and the runnable repro live in
+      <code>JeremyGracey-AI/governance-drift-researcher</code>.
+    </p>
+    <p>
+      One house rule to respect before anything is submitted — CONTRIBUTING.md: <em>“No
+      AI-generated slop. If an AI wrote your PR, read it yourself first.”</em> This report was
+      AI-drafted. Every claim in it is cited to code or executed output precisely so it can be
+      checked, and it should be, by a human, before it goes anywhere near their tracker.
+    </p>
+    <p>
+      The two metadata items remain live. Fixing them requires an <em>Overwrite</em> republish of
+      the public URL from builder state — too blunt an instrument for a name change without first
+      confirming the two scopes' Weft halves match.
+    </p>
+  </section>
+
+  <footer>
+    <div>Evidence — before/after state captured from the unauthenticated publish endpoint, reproducible by anyone · loomCode 48 lines · weftCode 338 lines</div>
+    <div style="margin-top:.4rem">Public repository: <code>JeremyGracey-AI/governance-drift-researcher</code> at <code>ae5d3f3</code></div>
+  </footer>
+
+</div>
